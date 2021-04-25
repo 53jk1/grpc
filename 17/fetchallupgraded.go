@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -37,9 +38,26 @@ func fetch(url string, ch chan<- string) {
 		ch <- fmt.Sprintf("when loading %s: %v", url, err)
 		return
 	}
-	os.Create("~/grpc/17/data")
 	secs := time.Since(start).Seconds()
 	ch <- fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url)
-	ch <- ioutil.WriteFile("~/grpc/17/data", fmt.Sprintf("%.2fs %7d %s", secs, nbytes, url))
 
+	file, fileErr := os.Create("file")
+	if fileErr != nil {
+		fmt.Println(fileErr)
+		return
+
+	}
+
+	w := bufio.NewWriter(file)
+
+	_, err = fmt.Fprintf(w, "%.2fs %7d %s", secs, nbytes, url)
+	check(err)
+	w.Flush()
+
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
